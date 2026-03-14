@@ -102,3 +102,46 @@ export async function generateComicPanel(
 ): Promise<GenerationResponse> {
   return generateImage(prompt, systemPrompt, imageConfig || null);
 }
+
+/**
+ * Get scene recommendations based on previous story context.
+ */
+export async function getSceneRecommendations(storyContext: string): Promise<string[]> {
+  const url = `${BASE_URL}/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+  
+  const prompt = `You are a scriptwriter for high-end European comic books (Bande Dessinée) in the style of Tintin.
+  
+  CURRENT STORY CONTEXT:
+  ${storyContext}
+  
+  Based on this sequence, suggest EXACTLY 3 possible next scene descriptions for the NEXT panel. 
+  Each suggestion should be a single, vivid sentence describing the action, characters, and setting.
+  Stay true to the Ligne Claire/Tintin adventurous spirit.
+  
+  Return ONLY a JSON array of 3 strings. Example: ["Suggestion 1", "Suggestion 2", "Suggestion 3"]`;
+
+  const requestBody = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseType: "application/json",
+    }
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) return [];
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("Failed to parse recommendations:", text);
+    return [];
+  }
+}

@@ -532,3 +532,14 @@
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+.recommendation-chip {
+  transition: all 0.2s ease;
+}
+
+.recommendation-chip:hover {
+  background: #222 !important;
+  color: #fff !important;
+  border-color: #444 !important;
+  transform: translateX(4px);
+}

@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import './App.css';
 import { MousePointer2 } from 'lucide-react';
-import { generateComicPanel, ImageConfig } from './services/gemini';
+import { generateComicPanel, ImageConfig, getSceneRecommendations } from './services/gemini';
 import { TINTIN_SYSTEM_PROMPT, buildPanelPrompt, TEST_PROMPTS, PanelConfig } from './prompts/tintin';
 import logo from './assets/nanocomics.jpeg';
 
@@ -42,6 +42,9 @@ function App() {
   const [speechOverlay, setSpeechOverlay] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTestPrompt, setSelectedTestPrompt] = useState(-1);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
+  const [customContent, setCustomContent] = useState('');
 
   const getClosestAspectRatio = (width: number, height: number): string => {
     const ratio = width / height;
@@ -60,9 +63,53 @@ function App() {
     ).name;
   };
 
+  const getStoryContext = (targetPanelId: string) => {
+    const context: string[] = [];
+    let found = false;
+
+    for (const row of rows) {
+      for (const panel of row.panels) {
+        if (panel.id === targetPanelId) {
+          found = true;
+          break;
+        }
+        const data = panelData[panel.id];
+        if (data?.content) {
+          context.push(`Panel ${context.length + 1}: ${data.content}`);
+        }
+      }
+      if (found) break;
+    }
+    return context.join('\n');
+  };
+
+  const fetchRecommendations = async (panelId: string) => {
+    const context = getStoryContext(panelId);
+    if (!context) {
+      setRecommendations([]);
+      return;
+    }
+    
+    setLoadingRecs(true);
+    try {
+      const recs = await getSceneRecommendations(context);
+      setRecommendations(recs);
+    } catch (err) {
+      console.error("Failed to fetch recommendations:", err);
+      setRecommendations([]);
+    } finally {
+      setLoadingRecs(false);
+    }
+  };
+
   const handlePanelClick = (rowId: string, panelId: string, e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const aspectRatio = getClosestAspectRatio(rect.width, rect.height);
+    
+    // Clear previous panel state
+    setRecommendations([]);
+    const existingData = panelData[panelId];
+    setCustomContent(existingData?.content || '');
     
     setSelectedPanel({ 
       rowId, 
@@ -73,6 +120,10 @@ function App() {
     });
     setIsConfigOpen(true);
     setError(null);
+    setSelectedTestPrompt(-1);
+
+    // Fetch new recommendations
+    fetchRecommendations(panelId);
   };
 
   const handleTestPromptSelect = (index: number) => {
@@ -95,7 +146,7 @@ function App() {
       };
     } else {
       config = {
-        content: formData.get('content') as string,
+        content: customContent,
         characters: formData.get('characters') as string,
         setting: formData.get('setting') as string,
         mood: formData.get('mood') as string,
@@ -111,6 +162,7 @@ function App() {
     setSelectedPanel(null);
     setGeneratingPanel(panelId);
     setError(null);
+    setRecommendations([]);
 
     try {
       const prompt = buildPanelPrompt(config);
@@ -313,11 +365,47 @@ function App() {
               <label>Scene Description</label>
               <textarea 
                 name="content" 
+                value={customContent}
+                onChange={(e) => setCustomContent(e.target.value)}
                 placeholder="A young reporter chases a thief through a Moroccan marketplace..." 
                 rows={3}
                 required={selectedTestPrompt < 0}
                 disabled={selectedTestPrompt >= 0}
               />
+
+              {/* Recommendations */}
+              {!selectedTestPrompt && recommendations.length > 0 && (
+                <div className="recommendations-container" style={{ marginTop: '8px' }}>
+                  <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '4px', display: 'block' }}>RECOMMENDED NEXT SCENES:</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {recommendations.map((rec, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="recommendation-chip"
+                        onClick={() => setCustomContent(rec)}
+                        style={{
+                          background: '#111',
+                          border: '1px solid #222',
+                          color: '#aaa',
+                          padding: '6px 10px',
+                          fontSize: '0.7rem',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontFamily: 'Digital Strip',
+                          borderRadius: '2px',
+                          lineHeight: '1.4'
+                        }}
+                      >
+                        {rec}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {loadingRecs && (
+                <span className="mono" style={{ fontSize: '0.6rem', color: '#444', marginTop: '8px', display: 'block' }}>FETCHING RECOMMENDATIONS...</span>
+              )}
             </div>
 
             <div className="form-group">
