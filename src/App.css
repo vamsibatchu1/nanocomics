@@ -1,0 +1,513 @@
+@font-face {
+  font-family: 'Digital Strip';
+  src: url('./assets/fonts/digital_strip/digistrip.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Digital Strip';
+  src: url('./assets/fonts/digital_strip/digistrip_b.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Digital Strip';
+  src: url('./assets/fonts/digital_strip/digistrip_i.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+.app-container {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  padding: 24px;
+  background: #000;
+  border-right: 1px solid #222;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  font-family: 'Digital Strip', sans-serif;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.header {
+  text-align: left;
+  margin-bottom: 24px;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.header-logo {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.info-section {
+  margin-bottom: 24px;
+  font-family: 'Digital Strip', sans-serif;
+  font-size: 0.7rem;
+  color: #888;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+}
+
+/* Viewer Section */
+.viewer {
+  background: var(--bg-color);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.viewer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.viewer-content.shifted {
+  transform: translateX(-200px); /* Half of the 400px panel width to maintain balance */
+}
+
+/* Comic Page Template - Constrained */
+.comic-page {
+  background-color: var(--page-bg);
+  height: 85vh; /* Reduced to ensure safety */
+  aspect-ratio: 1 / 1.414; /* Standard A4 ratio */
+  max-width: calc(100% - 40px);
+  padding: 30px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  border-radius: 0;
+  animation: scaleUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.comic-row {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  min-height: 0; /* Allow shrinking */
+}
+
+.comic-panel {
+  flex: 1;
+  background-color: #fff;
+  border: 2px solid #000;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+  transition: background-color 0.2s;
+}
+
+.comic-panel:hover {
+  background-color: #f8f8f8;
+  transform: translateY(-2px) scale(1.01);
+  z-index: 5;
+}
+
+.comic-panel.selected {
+  border-color: #000;
+  background-color: #fff;
+}
+
+.comic-panel.selected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: inset 0 0 0 4px #000;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.selected-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #000;
+  background: rgba(255, 255, 255, 0.4); /* Light semi-transparent overlay */
+  backdrop-filter: blur(2px);
+  z-index: 20;
+  pointer-events: none;
+  animation: pulseSelection 1.5s infinite ease-in-out;
+}
+
+.selected-status span.mono {
+  font-family: 'Digital Strip', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+@keyframes pulseSelection {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* Controls - Simplified for Sidebar */
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-group h3 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #555;
+  margin: 0;
+  font-family: 'Digital Strip', sans-serif;
+}
+
+.btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn {
+  background: #111;
+  color: white;
+  border: 1px solid #333;
+  padding: 12px 16px;
+  font-family: 'Digital Strip', sans-serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 0;
+  width: 100%;
+}
+
+.btn:hover {
+  background: #222;
+  border-color: #555;
+}
+
+.btn-primary {
+  background: white;
+  color: black;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: #eee;
+}
+
+/* Config Aside Panel - Floating Version */
+.config-aside {
+  position: absolute;
+  right: 40px;
+  top: 7.5vh; /* Aligns with the top of the 85vh centered page */
+  width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  background: #080808;
+  border: none;
+  padding: 0 32px 32px 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(calc(100% + 60px));
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100;
+  box-sizing: border-box;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+}
+
+.config-aside.visible {
+  transform: translateX(0);
+}
+
+.config-aside::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.config-aside h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.config-aside .panel-id {
+  font-size: 0.6rem;
+  color: #555;
+  margin-bottom: 32px;
+}
+
+.modal-header {
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.form-group input, 
+.form-group textarea, 
+.form-group select {
+  width: 100%;
+  background: #000;
+  border: 1px solid #333;
+  color: white;
+  padding: 12px;
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus, 
+.form-group textarea:focus {
+  outline: none;
+  border-color: #666;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #888;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.panel-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #000;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  transform: translateY(4px);
+  pointer-events: none;
+}
+
+.comic-panel:hover .panel-placeholder {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.panel-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 0;
+  transform: scale(1.1); /* Aggressive zoom to crop out AI-generated edge borders */
+}
+
+.panel-placeholder, .generating-state {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Generating State */
+.generating-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.generating-text {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: #999;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Test Prompt Grid */
+.test-prompt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.test-prompt-btn {
+  background: #111;
+  color: #888;
+  border: 1px solid #333;
+  padding: 10px 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0;
+}
+
+.test-prompt-btn:hover {
+  background: #1a1a1a;
+  border-color: #555;
+  color: #ccc;
+}
+
+.test-prompt-btn.active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+  font-weight: 600;
+}
+
+/* Form Divider */
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #444;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.form-divider::before,
+.form-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #333;
+}
+
+/* Error Toast */
+.error-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a0000;
+  border: 1px solid #ff4444;
+  color: #ff8888;
+  padding: 12px 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1000;
+  cursor: pointer;
+  max-width: 600px;
+  animation: slideUp 0.3s ease-out;
+}
+
+.error-dismiss {
+  background: none;
+  border: none;
+  color: #ff4444;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
