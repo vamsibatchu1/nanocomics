@@ -358,7 +358,7 @@ function App() {
                     type="button" 
                     className={`btn ${speechOverlay ? 'btn-primary' : ''}`}
                     onClick={() => setSpeechOverlay(!speechOverlay)}
-                    style={{ width: 'auto', padding: '12px 16px', flex: '0 0 auto' }}
+                    style={{ width: 'auto', height: '47.5px', padding: '0 16px', flex: '0 0 auto' }}
                   >
                     {speechOverlay ? 'ON' : 'OFF'}
                   </button>
@@ -366,7 +366,7 @@ function App() {
                     <input 
                       name="dialogue" 
                       placeholder="Dialogue..." 
-                      style={{ flex: 1, padding: '12px 8px', fontSize: '0.8rem' }}
+                      style={{ flex: 1, height: '47.5px', padding: '0 8px', fontSize: '0.8rem' }}
                       disabled={selectedTestPrompt >= 0}
                     />
                   )}
