@@ -1,30 +1,33 @@
 /**
  * Gemini API Service — Nano Banana Image Generation
  * ===================================================
- * 
- * Uses the Gemini REST API directly (no SDK) to generate comic panel images
- * via the Nano Banana (Gemini image generation) model.
- * 
- * Model: gemini-2.0-flash-exp (Nano Banana — optimized for speed)
- * Endpoint: v1beta generateContent with responseModalities: ["TEXT", "IMAGE"]
  */
 
-const API_KEY = 'AIzaSyDKb4icDOT0tCDBfbsEdJrYp7NVhmPzs8k';
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const MODEL = 'gemini-3.1-flash-image-preview';
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
+export interface ImageConfig {
+  aspectRatio?: string;
+  imageSize?: string;
+}
+
+export interface GenerationResponse {
+  imageUrl: string;
+  text: string | null;
+}
+
 /**
  * Generate an image using Nano Banana via the Gemini REST API.
- * 
- * @param {string} prompt        — The full text prompt (including style instructions)
- * @param {string} systemPrompt  — The system-level instruction for style enforcement
- * @param {Object} [imageConfig] — Optional dimensions configuration (aspectRatio, imageSize)
- * @returns {Promise<{ imageUrl: string, text: string | null }>}
  */
-export async function generateImage(prompt, systemPrompt = '', imageConfig = null) {
+export async function generateImage(
+  prompt: string, 
+  systemPrompt: string = '', 
+  imageConfig: ImageConfig | null = null
+): Promise<GenerationResponse> {
   const url = `${BASE_URL}/${MODEL}:generateContent?key=${API_KEY}`;
 
-  const requestBody = {
+  const requestBody: any = {
     contents: [
       {
         role: 'user',
@@ -41,7 +44,6 @@ export async function generateImage(prompt, systemPrompt = '', imageConfig = nul
     },
   };
 
-  // Add system instruction if provided
   if (systemPrompt) {
     requestBody.systemInstruction = {
       parts: [{ text: systemPrompt }],
@@ -64,9 +66,8 @@ export async function generateImage(prompt, systemPrompt = '', imageConfig = nul
 
   const data = await response.json();
 
-  // Extract image and text from response parts
-  let imageUrl = null;
-  let text = null;
+  let imageUrl: string | null = null;
+  let text: string | null = null;
 
   const parts = data?.candidates?.[0]?.content?.parts || [];
 
@@ -74,7 +75,6 @@ export async function generateImage(prompt, systemPrompt = '', imageConfig = nul
     if (part.text) {
       text = part.text;
     } else if (part.inlineData) {
-      // Convert base64 image data to a data URL
       const mimeType = part.inlineData.mimeType || 'image/png';
       const base64Data = part.inlineData.data;
       imageUrl = `data:${mimeType};base64,${base64Data}`;
@@ -82,12 +82,11 @@ export async function generateImage(prompt, systemPrompt = '', imageConfig = nul
   }
 
   if (!imageUrl) {
-    // Check for blocked content
     const blockReason = data?.candidates?.[0]?.finishReason;
     if (blockReason === 'SAFETY') {
       throw new Error('Image generation was blocked by safety filters. Try rephrasing the prompt.');
     }
-    throw new Error('No image was returned by the model. The response may have been filtered or the model returned text-only.');
+    throw new Error('No image was returned by the model.');
   }
 
   return { imageUrl, text };
@@ -95,13 +94,11 @@ export async function generateImage(prompt, systemPrompt = '', imageConfig = nul
 
 /**
  * Generate a comic panel image with the Tintin style.
- * Convenience wrapper that combines the prompt builder with the API call.
- * 
- * @param {string} prompt       — The built panel prompt
- * @param {string} systemPrompt — The Tintin system prompt
- * @param {Object} [imageConfig] — The style/dimension config
- * @returns {Promise<{ imageUrl: string, text: string | null }>}
  */
-export async function generateComicPanel(prompt, systemPrompt, imageConfig) {
-  return generateImage(prompt, systemPrompt, imageConfig);
+export async function generateComicPanel(
+  prompt: string, 
+  systemPrompt: string, 
+  imageConfig?: ImageConfig
+): Promise<GenerationResponse> {
+  return generateImage(prompt, systemPrompt, imageConfig || null);
 }

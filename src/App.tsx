@@ -1,28 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import './App.css';
 import { MousePointer2 } from 'lucide-react';
-import { generateComicPanel } from './services/gemini';
-import { TINTIN_SYSTEM_PROMPT, buildPanelPrompt, TEST_PROMPTS } from './prompts/tintin';
+import { generateComicPanel, ImageConfig } from './services/gemini';
+import { TINTIN_SYSTEM_PROMPT, buildPanelPrompt, TEST_PROMPTS, PanelConfig } from './prompts/tintin';
 import logo from './assets/nanocomics.jpeg';
 
-const INITIAL_ROWS = [
+interface Panel {
+  id: string;
+}
+
+interface Row {
+  id: string;
+  panels: Panel[];
+}
+
+interface SelectedPanel {
+  rowId: string;
+  panelId: string;
+  aspectRatio: string;
+  width: number;
+  height: number;
+}
+
+interface PanelData {
+  [key: string]: PanelConfig & { imageUrl?: string };
+}
+
+const INITIAL_ROWS: Row[] = [
   { id: 'r1', panels: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }] },
   { id: 'r2', panels: [{ id: 'p4' }, { id: 'p5' }] },
   { id: 'r3', panels: [{ id: 'p6' }] },
 ];
 
 function App() {
-  const [rows, setRows] = useState(INITIAL_ROWS);
-  const [selectedPanel, setSelectedPanel] = useState(null);
+  const [rows, setRows] = useState<Row[]>(INITIAL_ROWS);
+  const [selectedPanel, setSelectedPanel] = useState<SelectedPanel | null>(null);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [generatingPanel, setGeneratingPanel] = useState(null);
-  const [panelData, setPanelData] = useState({});
+  const [generatingPanel, setGeneratingPanel] = useState<string | null>(null);
+  const [panelData, setPanelData] = useState<PanelData>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [speechOverlay, setSpeechOverlay] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTestPrompt, setSelectedTestPrompt] = useState(-1);
 
-  const getClosestAspectRatio = (width, height) => {
+  const getClosestAspectRatio = (width: number, height: number): string => {
     const ratio = width / height;
     const standardRatios = [
       { name: '1:1', value: 1 },
@@ -39,7 +60,7 @@ function App() {
     ).name;
   };
 
-  const handlePanelClick = (rowId, panelId, e) => {
+  const handlePanelClick = (rowId: string, panelId: string, e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const aspectRatio = getClosestAspectRatio(rect.width, rect.height);
     
@@ -54,22 +75,19 @@ function App() {
     setError(null);
   };
 
-  // Fill form fields from a test prompt
-  const handleTestPromptSelect = (index) => {
+  const handleTestPromptSelect = (index: number) => {
     setSelectedTestPrompt(index);
   };
 
-  const handleGenerate = async (e) => {
+  const handleGenerate = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedPanel) return;
 
-    const formData = new FormData(e.target);
-    let config;
+    const formData = new FormData(e.currentTarget);
+    let config: PanelConfig;
 
-    // Use selected panel's aspect ratio
     const currentAspectRatio = selectedPanel.aspectRatio;
 
-    // If a test prompt is selected, use its config
     if (selectedTestPrompt >= 0) {
       config = { 
         ...TEST_PROMPTS[selectedTestPrompt].config,
@@ -77,13 +95,13 @@ function App() {
       };
     } else {
       config = {
-        content: formData.get('content'),
-        characters: formData.get('characters'),
-        setting: formData.get('setting'),
-        mood: formData.get('mood'),
-        dialogue: speechOverlay ? formData.get('dialogue') : '',
-        cameraAngle: formData.get('cameraAngle'),
-        params: formData.get('params'),
+        content: formData.get('content') as string,
+        characters: formData.get('characters') as string,
+        setting: formData.get('setting') as string,
+        mood: formData.get('mood') as string,
+        dialogue: speechOverlay ? (formData.get('dialogue') as string) : '',
+        cameraAngle: formData.get('cameraAngle') as string,
+        params: formData.get('params') as string,
         dimensions: currentAspectRatio
       };
     }
@@ -95,25 +113,20 @@ function App() {
     setError(null);
 
     try {
-      // Build the Tintin-style prompt and call Nano Banana
       const prompt = buildPanelPrompt(config);
-      console.log('📤 Sending prompt to Nano Banana with aspect ratio:', currentAspectRatio);
-      console.log('Prompt:\n', prompt);
-
-      // Pass imageConfig to API
-      const imageConfig = {
+      
+      const imageConfig: ImageConfig = {
         aspectRatio: currentAspectRatio,
-        imageSize: '1024' // Default high-res for Nano Banana
+        imageSize: '1024'
       };
 
       const result = await generateComicPanel(prompt, TINTIN_SYSTEM_PROMPT, imageConfig);
-      console.log('📥 Received image from Nano Banana', result.text ? `with text: ${result.text}` : '');
 
       setPanelData(prev => ({
         ...prev,
         [panelId]: { ...config, imageUrl: result.imageUrl }
       }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Generation failed:', err);
       setError(`Panel generation failed: ${err.message}`);
     } finally {
@@ -128,7 +141,7 @@ function App() {
     setRows([...rows, { id: newId, panels: [{ id: `p${Date.now()}` }] }]);
   };
 
-  const addPanelToRow = (rowId) => {
+  const addPanelToRow = (rowId: string) => {
     setRows(rows.map(row => {
       if (row.id === rowId && row.panels.length < 3) {
         return { ...row, panels: [...row.panels, { id: `p${Date.now()}` }] };
@@ -137,7 +150,7 @@ function App() {
     }));
   };
 
-  const removePanelFromRow = (rowId) => {
+  const removePanelFromRow = (rowId: string) => {
     setRows(rows.map(row => {
       if (row.id === rowId && row.panels.length > 1) {
         return { ...row, panels: row.panels.slice(0, -1) };
@@ -266,7 +279,6 @@ function App() {
           </div>
         </div>
 
-        {/* Error toast */}
         {error && (
           <div className="error-toast" onClick={() => setError(null)}>
             <span>⚠ {error}</span>
@@ -277,7 +289,6 @@ function App() {
         <aside className={`config-aside ${isConfigOpen ? 'visible' : ''}`}>
           <form onSubmit={handleGenerate} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             
-            {/* Test Prompt Selector */}
             <div className="form-group">
               <label>Quick Test Prompts</label>
               <div className="test-prompt-grid">
@@ -303,7 +314,7 @@ function App() {
               <textarea 
                 name="content" 
                 placeholder="A young reporter chases a thief through a Moroccan marketplace..." 
-                rows="3"
+                rows={3}
                 required={selectedTestPrompt < 0}
                 disabled={selectedTestPrompt >= 0}
               />

@@ -1,22 +1,19 @@
 /**
  * TINTIN COMIC STYLE — Prompt Configuration
  * ===========================================
- * 
- * This file defines the master prompt template for generating comic panels
- * in the exact visual style of Hergé's "The Adventures of Tintin".
- * 
- * Key Tintin / Ligne Claire characteristics enforced:
- *   - Clean, uniform-weight black outlines (no line weight variation)
- *   - Flat, solid color fills with NO gradients or airbrushing
- *   - Minimal hatching/cross-hatching; shadows are flat color shifts
- *   - Highly detailed realistic backgrounds with simplified cartoon characters
- *   - Limited but vivid color palette (gouache-like saturation)
- *   - No motion blur; action conveyed through pose and speed lines
- *   - Hand-lettered uppercase dialogue in white oval speech bubbles
- *   - European BD (bande dessinée) composition and framing
  */
 
-// ─── SYSTEM PROMPT (prepended to every generation) ──────────────────────────
+export interface PanelConfig {
+  content: string;
+  characters?: string;
+  setting?: string;
+  mood?: string;
+  cameraAngle?: string;
+  dialogue?: string;
+  dimensions?: string;
+  params?: string;
+}
+
 export const TINTIN_SYSTEM_PROMPT = `You are an expert comic illustrator that generates images EXCLUSIVELY in the "Ligne Claire" style of Hergé's Tintin comics. Every image you create must strictly follow these rules:
 
 ILLUSTRATION STYLE:
@@ -61,54 +58,23 @@ WHAT TO ABSOLUTELY AVOID:
 - NO white borders, NO internal padding, NO margins; the illustration must be FULL-BLEED and fill the entire frame up to the edges
 - ABSOLUTELY NO external black frame or border lines around the image; all lines and colors must BLEED OFF the canvas edges`;
 
-// ─── PANEL PROMPT BUILDER ───────────────────────────────────────────────────
 /**
  * Builds a complete prompt for a single comic panel.
- * 
- * @param {Object} config
- * @param {string} config.content       — The scene/narrative description
- * @param {string} [config.characters]  — Characters to include (e.g. "A young reporter with a quiff, his white dog")
- * @param {string} [config.setting]     — Location/environment (e.g. "A bustling Cairo marketplace")
- * @param {string} [config.mood]        — Emotional tone (e.g. "tense", "comedic", "adventurous")
- * @param {string} [config.dialogue]    — Speech bubble text (e.g. "Great snakes! The emerald is gone!")
- * @param {string} [config.cameraAngle] — Shot type (e.g. "wide establishing shot", "close-up", "bird's eye")
- * @param {string} [config.params]      — Additional style modifiers
- * @returns {string} The full prompt to send to Nano Banana
  */
-export function buildPanelPrompt(config) {
+export function buildPanelPrompt(config: PanelConfig): string {
   const parts = [
     `Generate a single comic panel illustration in the EXACT style of Hergé's Tintin comics (Ligne Claire).`,
     '',
     `SCENE: ${config.content}`,
   ];
 
-  if (config.characters) {
-    parts.push(`CHARACTERS: ${config.characters}`);
-  }
-
-  if (config.setting) {
-    parts.push(`SETTING: ${config.setting}`);
-  }
-
-  if (config.mood) {
-    parts.push(`MOOD/TONE: ${config.mood}`);
-  }
-
-  if (config.cameraAngle) {
-    parts.push(`CAMERA: ${config.cameraAngle}`);
-  }
-
-  if (config.dialogue) {
-    parts.push(`DIALOGUE (in speech bubbles): "${config.dialogue}"`);
-  }
-
-  if (config.dimensions) {
-    parts.push(`FRAMING / ASPECT RATIO: ${config.dimensions}`);
-  }
-
-  if (config.params) {
-    parts.push(`ADDITIONAL DETAILS: ${config.params}`);
-  }
+  if (config.characters) parts.push(`CHARACTERS: ${config.characters}`);
+  if (config.setting) parts.push(`SETTING: ${config.setting}`);
+  if (config.mood) parts.push(`MOOD/TONE: ${config.mood}`);
+  if (config.cameraAngle) parts.push(`CAMERA: ${config.cameraAngle}`);
+  if (config.dialogue) parts.push(`DIALOGUE (in speech bubbles): "${config.dialogue}"`);
+  if (config.dimensions) parts.push(`FRAMING / ASPECT RATIO: ${config.dimensions}`);
+  if (config.params) parts.push(`ADDITIONAL DETAILS: ${config.params}`);
 
   parts.push('');
   parts.push('CRITICAL STYLE REQUIREMENTS:');
@@ -124,11 +90,12 @@ export function buildPanelPrompt(config) {
   return parts.join('\n');
 }
 
-// ─── TEST PROMPTS ───────────────────────────────────────────────────────────
-/**
- * A set of pre-made test prompts to verify the pipeline and Tintin style fidelity.
- */
-export const TEST_PROMPTS = [
+export interface TestPrompt {
+  name: string;
+  config: PanelConfig;
+}
+
+export const TEST_PROMPTS: TestPrompt[] = [
   {
     name: 'Market Chase',
     config: {
@@ -169,11 +136,4 @@ export const TEST_PROMPTS = [
       dialogue: 'I say, Thompson, are you sure this is the right way? — To be precise: are YOU sure?',
     },
   },
-];
-
-// ─── DEFAULT STYLE CONFIG ───────────────────────────────────────────────────
-export const DEFAULT_STYLE = 'tintin';
-
-export const STYLE_OPTIONS = [
-  { value: 'tintin', label: 'Tintin — Ligne Claire' },
 ];
