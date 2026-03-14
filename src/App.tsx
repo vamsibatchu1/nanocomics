@@ -358,7 +358,7 @@ function App() {
                     type="button" 
                     className={`btn ${speechOverlay ? 'btn-primary' : ''}`}
                     onClick={() => setSpeechOverlay(!speechOverlay)}
-                    style={{ width: 'auto', padding: '8px 16px', flex: '0 0 auto' }}
+                    style={{ width: 'auto', padding: '12px 16px', flex: '0 0 auto' }}
                   >
                     {speechOverlay ? 'ON' : 'OFF'}
                   </button>
