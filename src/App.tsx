@@ -374,62 +374,79 @@ function App() {
                 required
               />
 
-              {/* Intelligent Switching: Recommendations take priority if they exist */}
-              {loadingRecs ? (
-                <div style={{ marginTop: '12px', borderTop: '1px solid #111', paddingTop: '8px' }}>
-                  <span className="mono" style={{ fontSize: '0.6rem', color: '#444', display: 'block' }}>ANALYZING PREVIOUS SCENES...</span>
-                </div>
-              ) : recommendations.length > 0 ? (
-                <div className="recommendations-container" style={{ marginTop: '12px', borderTop: '1px solid #111', paddingTop: '8px' }}>
-                  <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '8px', display: 'block' }}>RECOMMENDED NEXT SCENE:</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {recommendations.map((rec, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        className="recommendation-chip"
-                        onClick={() => {
-                          setCustomContent(rec);
-                          setSelectedTestPrompt(-1);
-                        }}
-                        style={{
-                          background: '#111',
-                          border: '1px solid #222',
-                          color: '#aaa',
-                          padding: '10px 12px',
-                          fontSize: '0.75rem',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          fontFamily: 'Digital Strip',
-                          borderRadius: '2px',
-                          lineHeight: '1.4',
-                          borderLeft: '3px solid #f9d71c' // Accent color for recommendations
-                        }}
-                      >
-                        {rec}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                /* Only show Test Prompts if no context-based recommendations are available */
-                <div style={{ marginTop: '12px' }}>
-                  <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '8px', display: 'block' }}>QUICK TEST PROMPTS:</span>
-                  <div className="test-prompt-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
-                    {TEST_PROMPTS.map((tp, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        className={`test-prompt-btn ${selectedTestPrompt === idx ? 'active' : ''}`}
-                        onClick={() => handleTestPromptSelect(idx)}
-                        style={{ fontSize: '0.65rem', padding: '6px 4px' }}
-                      >
-                        {tp.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Intelligent Context Switching */}
+              {(() => {
+                const storyHistory = selectedPanel ? getStoryContext(selectedPanel.panelId) : '';
+                const isStoryMode = storyHistory.length > 0;
+
+                if (isStoryMode) {
+                  return (
+                    <div className="recommendations-container" style={{ marginTop: '12px', borderTop: '1px solid #111', paddingTop: '8px' }}>
+                      <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '8px', display: 'block' }}>RECOMMENDED NEXT SCENE:</span>
+                      
+                      {loadingRecs ? (
+                        <div className="recommendation-loader">
+                          <div className="loading-bar-pulse" style={{ height: '40px', background: '#0a0a0a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="mono pulse" style={{ fontSize: '0.6rem', color: '#444' }}>ANALYZING SCRIPT...</span>
+                          </div>
+                        </div>
+                      ) : recommendations.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {recommendations.map((rec, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className="recommendation-chip"
+                              onClick={() => {
+                                setCustomContent(rec);
+                                setSelectedTestPrompt(-1);
+                              }}
+                              style={{
+                                background: '#111',
+                                border: '1px solid #222',
+                                color: '#aaa',
+                                padding: '10px 12px',
+                                fontSize: '0.75rem',
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                fontFamily: 'Digital Strip',
+                                borderRadius: '2px',
+                                lineHeight: '1.4',
+                                borderLeft: '3px solid #f9d71c'
+                              }}
+                            >
+                              {rec}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '8px', background: '#111', border: '1px dotted #333' }}>
+                          <span className="mono" style={{ fontSize: '0.6rem', color: '#555' }}>NO SUGGESTIONS AVAILABLE. TRY MANUAL PROMPT.</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div style={{ marginTop: '12px' }}>
+                      <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '8px', display: 'block' }}>QUICK TEST PROMPTS:</span>
+                      <div className="test-prompt-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                        {TEST_PROMPTS.map((tp, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            className={`test-prompt-btn ${selectedTestPrompt === idx ? 'active' : ''}`}
+                            onClick={() => handleTestPromptSelect(idx)}
+                            style={{ fontSize: '0.65rem', padding: '6px 4px' }}
+                          >
+                            {tp.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+              })()}
             </div>
 
             <div className="form-group">
