@@ -366,29 +366,15 @@ function App() {
                 required
               />
 
-              {/* Test Prompts as Quick-Fills */}
-              <div style={{ marginTop: '8px' }}>
-                <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '4px', display: 'block' }}>QUICK TEST PROMPTS:</span>
-                <div className="test-prompt-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
-                  {TEST_PROMPTS.map((tp, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      className={`test-prompt-btn ${selectedTestPrompt === idx ? 'active' : ''}`}
-                      onClick={() => handleTestPromptSelect(idx)}
-                      style={{ fontSize: '0.65rem', padding: '6px 4px' }}
-                    >
-                      {tp.name}
-                    </button>
-                  ))}
+              {/* Intelligent Switching: Recommendations take priority if they exist */}
+              {loadingRecs ? (
+                <div style={{ marginTop: '12px', borderTop: '1px solid #111', paddingTop: '8px' }}>
+                  <span className="mono" style={{ fontSize: '0.6rem', color: '#444', display: 'block' }}>ANALYZING PREVIOUS SCENES...</span>
                 </div>
-              </div>
-
-              {/* Recommendations */}
-              {recommendations.length > 0 && (
+              ) : recommendations.length > 0 ? (
                 <div className="recommendations-container" style={{ marginTop: '12px', borderTop: '1px solid #111', paddingTop: '8px' }}>
-                  <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '4px', display: 'block' }}>RECOMMENDED NEXT SCENES:</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '8px', display: 'block' }}>RECOMMENDED NEXT SCENE:</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {recommendations.map((rec, i) => (
                       <button
                         key={i}
@@ -402,13 +388,14 @@ function App() {
                           background: '#111',
                           border: '1px solid #222',
                           color: '#aaa',
-                          padding: '6px 10px',
-                          fontSize: '0.7rem',
+                          padding: '10px 12px',
+                          fontSize: '0.75rem',
                           textAlign: 'left',
                           cursor: 'pointer',
                           fontFamily: 'Digital Strip',
                           borderRadius: '2px',
-                          lineHeight: '1.4'
+                          lineHeight: '1.4',
+                          borderLeft: '3px solid #f9d71c' // Accent color for recommendations
                         }}
                       >
                         {rec}
@@ -416,9 +403,24 @@ function App() {
                     ))}
                   </div>
                 </div>
-              )}
-              {loadingRecs && (
-                <span className="mono" style={{ fontSize: '0.6rem', color: '#444', marginTop: '8px', display: 'block' }}>FETCHING RECOMMENDATIONS...</span>
+              ) : (
+                /* Only show Test Prompts if no context-based recommendations are available */
+                <div style={{ marginTop: '12px' }}>
+                  <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '8px', display: 'block' }}>QUICK TEST PROMPTS:</span>
+                  <div className="test-prompt-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                    {TEST_PROMPTS.map((tp, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={`test-prompt-btn ${selectedTestPrompt === idx ? 'active' : ''}`}
+                        onClick={() => handleTestPromptSelect(idx)}
+                        style={{ fontSize: '0.65rem', padding: '6px 4px' }}
+                      >
+                        {tp.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 

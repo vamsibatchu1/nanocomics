@@ -107,7 +107,7 @@ export async function generateComicPanel(
  * Get scene recommendations based on previous story context.
  */
 export async function getSceneRecommendations(storyContext: string): Promise<string[]> {
-  const url = `${BASE_URL}/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+  const url = `${BASE_URL}/gemini-2.0-flash-lite-preview-02-05:generateContent?key=${API_KEY}`;
   
   const prompt = `You are a scriptwriter for high-end European comic books (Bande Dessinée) in the style of Tintin.
   
