@@ -115,15 +115,15 @@ export async function getSceneRecommendations(storyContext: string): Promise<str
   ${storyContext}
   
   Based on this sequence, suggest EXACTLY 3 possible next scene descriptions for the NEXT panel. 
-  Each suggestion should be a single, vivid sentence describing the action, characters, and setting.
-  Stay true to the Ligne Claire/Tintin adventurous spirit.
+  Each suggestion should be a single, vivid sentence. Stay true to the Ligne Claire spirit.
   
-  Return ONLY a JSON array of 3 strings. Example: ["Suggestion 1", "Suggestion 2", "Suggestion 3"]`;
+  Return a JSON array of 3 strings. 
+  Format: ["Suggestion 1", "Suggestion 2", "Suggestion 3"]`;
 
   const requestBody = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      responseType: "application/json",
+      responseMimeType: "application/json",
     }
   };
 
@@ -133,13 +133,18 @@ export async function getSceneRecommendations(storyContext: string): Promise<str
     body: JSON.stringify(requestBody),
   });
 
-  if (!response.ok) return [];
+  if (!response.ok) {
+    const err = await response.json();
+    console.error("Recommendation API Error:", err);
+    return [];
+  }
 
   const data = await response.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   
   try {
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     console.error("Failed to parse recommendations:", text);
     return [];
