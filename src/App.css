@@ -125,9 +125,9 @@
   min-width: 0;
   transition: background-color 0.2s;
   
-  /* Hand-drawn effect: subtle wavy edges and slightly imperfect corners */
+  /* Hand-drawn effect: organic rounded corners and subtle wavy edges */
   filter: url(#wobble-border);
-  border-radius: 4px 3px 6px 3px / 3px 6px 3px 4px;
+  border-radius: 12px 4px 15px 6px / 6px 15px 4px 12px;
 }
 
 .comic-panel:hover {
