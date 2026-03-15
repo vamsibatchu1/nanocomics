@@ -118,6 +118,8 @@ export async function getSceneRecommendations(storyContext: string): Promise<str
   Based on this sequence, suggest EXACTLY 3 possible next scene descriptions for the NEXT panel. 
   Each suggestion should be a single, vivid sentence. Stay true to the Ligne Claire spirit.
   
+  IMPORTANT: You MUST NOT use or mention Tintin, Snowy, Haddock, or any existing characters. Create generic, original characters fitting the European comic style.
+
   Return a JSON array of 3 strings. 
   Format: ["Suggestion 1", "Suggestion 2", "Suggestion 3"]`;
 

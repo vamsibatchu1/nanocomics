@@ -52,7 +52,8 @@ WHAT TO ABSOLUTELY AVOID:
 - Dark/gritty color palettes — Tintin is always bright and clear
 - 3D rendering, cel-shading, or any non-flat coloring technique
 - NO white borders, NO internal padding, NO margins; the illustration must be FULL-BLEED and fill the entire frame up to the edges
-- ABSOLUTELY NO external black frame or border lines around the image; all lines and colors must BLEED OFF the canvas edges`;
+- ABSOLUTELY NO external black frame or border lines around the image; all lines and colors must BLEED OFF the canvas edges
+- FORBIDDEN CHARACTERS: You MUST NOT generate Tintin, Snowy, Captain Haddock, Professor Calculus, the Thompsons, or any other existing characters from Hergé's works. Create original gender-neutral or diverse characters that fit the style but are NOT direct copies of the originals. Avoid the "quiff" hairstyle or specific iconic outfits.`;
 
 /**
  * Builds a complete prompt for a single comic panel.
@@ -78,6 +79,7 @@ export function buildPanelPrompt(config: PanelConfig): string {
   parts.push('- ABSOLUTELY NO outer border lines or frames; the illustration must be borderless and full-bleed');
   parts.push('- Simplified cartoon characters against detailed realistic backgrounds');
   parts.push('- Hergé gouache color palette: bright, clear, primary-leaning');
+  parts.push('- NO FORBIDDEN CHARACTERS: Use original, generic characters only. Avoid any likeness to Tintin, Snowy, Haddock, or other Hergé characters.');
   if (config.dialogue) {
     parts.push('- SPEECH BUBBLES: Draw white oval speech bubbles with uppercase hand-lettered text for the dialogue.');
     parts.push('- SAFE ACTION AREA: Keep all bubbles and text at least 15% away from ALL edges.');
@@ -100,41 +102,41 @@ export const TEST_PROMPTS: TestPrompt[] = [
   {
     name: 'Market Chase',
     config: {
-      content: 'A young reporter with a distinctive quiff hairstyle sprints through a crowded North African marketplace, knocking over baskets of oranges. A small white fox terrier runs beside him.',
+      content: 'A clumsy explorer in a pith helmet sprints through a crowded North African marketplace, knocking over baskets of oranges. A brown stray dog runs beside them.',
       setting: 'A sun-drenched Moroccan souk with colorful awnings, ceramic pots, and arched doorways',
       mood: 'adventurous and fast-paced',
       cameraAngle: 'dynamic low-angle shot showing the chase in perspective',
-      dialogue: 'Quick, Snowy! They\'re getting away!',
+      dialogue: 'Quick! We must find the hidden map!',
     },
   },
   {
     name: 'Ship Deck',
     config: {
-      content: 'A bearded sea captain in a blue sweater stands at the helm of a cargo ship, shouting orders during a storm. Waves crash against the hull.',
+      content: 'A tall female sailor in a yellow raincoat stands at the helm of a cargo ship, shouting orders during a storm. Waves crash against the hull.',
       setting: 'The bridge of a 1940s merchant vessel in rough Atlantic seas',
       mood: 'dramatic and tense',
-      cameraAngle: 'medium shot from slightly below, showing the captain against stormy skies',
-      dialogue: 'Billions of blistering blue barnacles! Hold steady!',
+      cameraAngle: 'medium shot from slightly below, showing the sailor against stormy skies',
+      dialogue: 'Brace yourselves for the next wave!',
     },
   },
   {
     name: 'Laboratory Scene',
     config: {
-      content: 'An absent-minded professor in a white lab coat accidentally causes a small explosion, his hair standing on end. Beakers and test tubes are scattered around a cluttered laboratory.',
-      setting: 'A chaotic European university laboratory filled with scientific equipment from the 1950s',
+      content: 'A roboticist in a futuristic jumpsuit accidentally causes a small explosion, their glasses crooked. Small gears and wires are scattered around a cluttered high-tech workshop.',
+      setting: 'A chaotic laboratory filled with scientific equipment from an alternate-history 1960s',
       mood: 'comedic',
       cameraAngle: 'wide shot showing the full laboratory chaos',
-      dialogue: 'Well... that was NOT the expected result!',
+      dialogue: 'Back to the drawing board...',
     },
   },
   {
     name: 'Desert Expedition',
     config: {
-      content: 'Two identical bowler-hatted detectives march in lockstep through a vast desert, looking confused and overheated. A caravan of camels passes in the background.',
+      content: 'A group of archeologists in khaki gear march through a vast desert, looking confused at an upside-down map. A caravan of camels passes in the background.',
       setting: 'The Sahara Desert with rolling dunes under a blazing sun, distant mountains on the horizon',
       mood: 'comedic and dry',
       cameraAngle: 'wide establishing shot emphasizing the vast desert landscape',
-      dialogue: 'I say, Thompson, are you sure this is the right way? — To be precise: are YOU sure?',
+      dialogue: 'This pyramid was supposed to be on the OTHER side of the dune.',
     },
   },
 ];
