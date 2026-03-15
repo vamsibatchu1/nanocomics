@@ -235,6 +235,14 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* SVG filter for organic, hand-drawn comic borders */}
+      <svg style={{ visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} xmlns="http://www.w3.org/2000/svg">
+        <filter id="wobble-border">
+          <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+        </filter>
+      </svg>
+
       <aside className="sidebar">
         <header className="header">
           <img src={logo} alt="NANO COMICS" className="header-logo" />
