@@ -239,7 +239,7 @@ function App() {
       <svg style={{ visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} xmlns="http://www.w3.org/2000/svg">
         <filter id="wobble-border">
           <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
         </filter>
       </svg>
 
