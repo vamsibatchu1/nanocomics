@@ -34,13 +34,9 @@ COLOR PALETTE:
 - Shadows are achieved ONLY through slightly darker flat color areas, never through opacity or gradients
 
 TYPOGRAPHY & LETTERING:
-- All text must appear in WHITE oval/rounded speech bubbles with thin black outlines
-- Speech bubbles should be placed centrally or near characters' heads, and NEVER at the extreme top edge of the frame.
-- Text inside bubbles is UPPERCASE, hand-lettered style, slightly rounded sans-serif
-- Tail of speech bubble always points to the speaker
-- Sound effects (onomatopoeia) are bold, angular, and integrated into the scene
-- Narrative captions appear in rectangular boxes with clean borders at the top or bottom of the panel
-- CRITICAL DEAD ZONE: The outer 15% of this image will be HIDDEN by the UI frame. You MUST keep all speech bubbles, dialogue text, character heads, and important action within the "Safe Action Area" (the central 70% of the canvas). NEVER let a speech bubble touch the top or side edges.
+- SPEECH BUBBLES (ONLY IF REQUESTED): All dialogue text must appear in WHITE oval/rounded speech bubbles with thin black outlines. Speech bubbles should be placed centrally or near characters' heads, and NEVER at the extreme top edge. Tail points to speaker. Text is UPPERCASE hand-lettered style.
+- IF NO DIALOGUE IS REQUESTED: You MUST NOT generate any speech bubbles, text, or narrative boxes. The image should be completely wordless.
+- CRITICAL DEAD ZONE: The outer 15% of this image will be HIDDEN by the UI frame. You MUST keep characters' heads and important action within the "Safe Action Area" (the central 70% of the canvas).
 
 COMPOSITION:
 - European bande dessinée panel composition
@@ -82,8 +78,13 @@ export function buildPanelPrompt(config: PanelConfig): string {
   parts.push('- ABSOLUTELY NO outer border lines or frames; the illustration must be borderless and full-bleed');
   parts.push('- Simplified cartoon characters against detailed realistic backgrounds');
   parts.push('- Hergé gouache color palette: bright, clear, primary-leaning');
-  parts.push('- White oval speech bubbles with uppercase hand-lettered text');
-  parts.push('- SAFE ACTION AREA: Keep all bubbles, text, and heads at least 15% away from ALL edges. The edges WILL be cropped.');
+  if (config.dialogue) {
+    parts.push('- SPEECH BUBBLES: Draw white oval speech bubbles with uppercase hand-lettered text for the dialogue.');
+    parts.push('- SAFE ACTION AREA: Keep all bubbles and text at least 15% away from ALL edges.');
+  } else {
+    parts.push('- NO SPEECH BUBBLES: Do not draw any speech bubbles, text boxes, or dialogue of any kind.');
+    parts.push('- SAFE ACTION AREA: Keep character heads and action at least 15% away from ALL edges.');
+  }
   parts.push('- European bande dessinée composition');
   parts.push('- The image should look like it was drawn by Hergé himself for a Tintin album');
 

@@ -165,7 +165,7 @@ function App() {
       content: customContent,
       characters: customCharacters,
       setting: customSetting,
-      mood: customSetting, // Reusing setting as mood for simplicity or keep defaults
+      mood: 'adventurous', // Default Tintin style
       dialogue: speechOverlay ? customDialogue : '',
       cameraAngle: customCameraAngle,
       params: customParams,
