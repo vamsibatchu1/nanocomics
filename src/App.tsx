@@ -79,36 +79,31 @@ function App() {
           break;
         }
         const data = panelData[panel.id];
-        // Capture context if either content OR image exists
-        if (data?.content || data?.imageUrl) {
-          context.push(`Panel ${context.length + 1}: ${data.content || "An action scene begins..."}`);
+        if (data && (data.content || data.imageUrl)) {
+          const desc = data.content || "An exciting opening scene begins...";
+          context.push(`Panel ${context.length + 1}: ${desc}`);
         }
       }
       if (found) break;
     }
-    return context.join('\n');
+    const finalContext = context.join('\n');
+    console.log("Comic Context Extracted:", finalContext);
+    return finalContext;
   };
 
-  const fetchRecommendations = async (panelId: string) => {
-    const context = getStoryContext(panelId);
-    
-    // Even if no context, we might want to show loading if it's not the very first panel
-    const previousPanelsExist = context.length > 0;
-    
-    if (!previousPanelsExist) {
+  const fetchRecommendations = async (panelId: string, context: string) => {
+    if (!context) {
       setRecommendations([]);
       setLoadingRecs(false);
       return;
     }
     
     setLoadingRecs(true);
-    setRecommendations([]); 
     try {
       const recs = await getSceneRecommendations(context);
       setRecommendations(recs);
     } catch (err) {
       console.error("AI Recommendation Error:", err);
-      // Don't set null, keep it as [] so it falls back to test prompts as safety
       setRecommendations([]);
     } finally {
       setLoadingRecs(false);
@@ -119,8 +114,11 @@ function App() {
     const rect = e.currentTarget.getBoundingClientRect();
     const aspectRatio = getClosestAspectRatio(rect.width, rect.height);
     
-    // Clear previous panel state
+    // Clear previous panel state and START LOADING immediately
     setRecommendations([]);
+    const context = getStoryContext(panelId);
+    if (context) setLoadingRecs(true);
+
     const existingData = panelData[panelId];
     setCustomContent(existingData?.content || '');
     setCustomCharacters(existingData?.characters || '');
@@ -141,8 +139,8 @@ function App() {
     setError(null);
     setSelectedTestPrompt(-1);
 
-    // Fetch new recommendations
-    fetchRecommendations(panelId);
+    // Fetch new recommendations with the context we already calculated
+    fetchRecommendations(panelId, context);
   };
 
   const handleTestPromptSelect = (index: number) => {
