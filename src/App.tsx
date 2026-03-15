@@ -327,10 +327,12 @@ function App() {
                       ) : data?.imageUrl ? (
                         <img src={data.imageUrl} alt="Generated Panel" className="panel-image" />
                       ) : (
-                        <div className="panel-placeholder">
-                          <span className="plus">+</span>
-                          <span className="mono">GENERATE</span>
-                        </div>
+                        !isSelected && (
+                          <div className="panel-placeholder">
+                            <span className="plus">+</span>
+                            <span className="mono">GENERATE</span>
+                          </div>
+                        )
                       )}
                     </div>
                   );
