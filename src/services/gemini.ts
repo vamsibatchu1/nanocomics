@@ -140,13 +140,23 @@ export async function getSceneRecommendations(storyContext: string): Promise<str
   }
 
   const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  
+  // Clean the response: remove markdown code blocks if they exist
+  text = text.replace(/```json/g, '').replace(/```/g, '').trim();
   
   try {
     const parsed = JSON.parse(text);
     return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
-    console.error("Failed to parse recommendations:", text);
+    console.error("Failed to parse recommendations. Raw text:", text);
+    // Fallback parsing for simple cases
+    if (text.includes("[") && text.includes("]")) {
+      try {
+        const fallbackMatch = text.match(/\[.*\]/s);
+        if (fallbackMatch && fallbackMatch[0]) return JSON.parse(fallbackMatch[0]);
+      } catch (innerE) {}
+    }
     return [];
   }
 }

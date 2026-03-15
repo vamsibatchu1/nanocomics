@@ -79,8 +79,9 @@ function App() {
           break;
         }
         const data = panelData[panel.id];
-        if (data?.content) {
-          context.push(`Panel ${context.length + 1}: ${data.content}`);
+        // Capture context if either content OR image exists
+        if (data?.content || data?.imageUrl) {
+          context.push(`Panel ${context.length + 1}: ${data.content || "An action scene begins..."}`);
         }
       }
       if (found) break;
@@ -90,17 +91,24 @@ function App() {
 
   const fetchRecommendations = async (panelId: string) => {
     const context = getStoryContext(panelId);
-    if (!context) {
+    
+    // Even if no context, we might want to show loading if it's not the very first panel
+    const previousPanelsExist = context.length > 0;
+    
+    if (!previousPanelsExist) {
       setRecommendations([]);
+      setLoadingRecs(false);
       return;
     }
     
     setLoadingRecs(true);
+    setRecommendations([]); 
     try {
       const recs = await getSceneRecommendations(context);
       setRecommendations(recs);
     } catch (err) {
-      console.error("Failed to fetch recommendations:", err);
+      console.error("AI Recommendation Error:", err);
+      // Don't set null, keep it as [] so it falls back to test prompts as safety
       setRecommendations([]);
     } finally {
       setLoadingRecs(false);
