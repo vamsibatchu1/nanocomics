@@ -45,6 +45,11 @@ function App() {
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [customContent, setCustomContent] = useState('');
+  const [customCharacters, setCustomCharacters] = useState('');
+  const [customSetting, setCustomSetting] = useState('');
+  const [customCameraAngle, setCustomCameraAngle] = useState('medium shot');
+  const [customDialogue, setCustomDialogue] = useState('');
+  const [customParams, setCustomParams] = useState('');
 
   const getClosestAspectRatio = (width: number, height: number): string => {
     const ratio = width / height;
@@ -110,6 +115,12 @@ function App() {
     setRecommendations([]);
     const existingData = panelData[panelId];
     setCustomContent(existingData?.content || '');
+    setCustomCharacters(existingData?.characters || '');
+    setCustomSetting(existingData?.setting || '');
+    setCustomCameraAngle(existingData?.cameraAngle || 'medium shot');
+    setCustomDialogue(existingData?.dialogue || '');
+    setCustomParams(existingData?.params || '');
+    setSpeechOverlay(!!existingData?.dialogue);
     
     setSelectedPanel({ 
       rowId, 
@@ -128,34 +139,32 @@ function App() {
 
   const handleTestPromptSelect = (index: number) => {
     setSelectedTestPrompt(index);
+    const tp = TEST_PROMPTS[index];
+    setCustomContent(tp.config.content);
+    setCustomCharacters(tp.config.characters || '');
+    setCustomSetting(tp.config.setting || '');
+    setCustomCameraAngle(tp.config.cameraAngle || 'medium shot');
+    setCustomDialogue(tp.config.dialogue || '');
+    setCustomParams(tp.config.params || '');
+    if (tp.config.dialogue) setSpeechOverlay(true);
   };
 
   const handleGenerate = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedPanel) return;
 
-    const formData = new FormData(e.currentTarget);
-    let config: PanelConfig;
-
     const currentAspectRatio = selectedPanel.aspectRatio;
 
-    if (selectedTestPrompt >= 0) {
-      config = { 
-        ...TEST_PROMPTS[selectedTestPrompt].config,
-        dimensions: currentAspectRatio 
-      };
-    } else {
-      config = {
-        content: customContent,
-        characters: formData.get('characters') as string,
-        setting: formData.get('setting') as string,
-        mood: formData.get('mood') as string,
-        dialogue: speechOverlay ? (formData.get('dialogue') as string) : '',
-        cameraAngle: formData.get('cameraAngle') as string,
-        params: formData.get('params') as string,
-        dimensions: currentAspectRatio
-      };
-    }
+    const config: PanelConfig = {
+      content: customContent,
+      characters: customCharacters,
+      setting: customSetting,
+      mood: customSetting, // Reusing setting as mood for simplicity or keep defaults
+      dialogue: speechOverlay ? customDialogue : '',
+      cameraAngle: customCameraAngle,
+      params: customParams,
+      dimensions: currentAspectRatio
+    };
 
     const panelId = selectedPanel.panelId;
     setIsConfigOpen(false);
@@ -341,41 +350,41 @@ function App() {
         <aside className={`config-aside ${isConfigOpen ? 'visible' : ''}`}>
           <form onSubmit={handleGenerate} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             
-            <div className="form-group">
-              <label>Quick Test Prompts</label>
-              <div className="test-prompt-grid">
-                {TEST_PROMPTS.map((tp, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className={`test-prompt-btn ${selectedTestPrompt === idx ? 'active' : ''}`}
-                    onClick={() => handleTestPromptSelect(idx)}
-                  >
-                    {tp.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="form-divider">
-              <span>OR CUSTOM PROMPT</span>
-            </div>
-
-            <div className="form-group">
+            <div className="form-group" style={{ marginTop: '4px' }}>
               <label>Scene Description</label>
               <textarea 
                 name="content" 
                 value={customContent}
-                onChange={(e) => setCustomContent(e.target.value)}
+                onChange={(e) => {
+                  setCustomContent(e.target.value);
+                  setSelectedTestPrompt(-1);
+                }}
                 placeholder="A young reporter chases a thief through a Moroccan marketplace..." 
                 rows={3}
-                required={selectedTestPrompt < 0}
-                disabled={selectedTestPrompt >= 0}
+                required
               />
 
+              {/* Test Prompts as Quick-Fills */}
+              <div style={{ marginTop: '8px' }}>
+                <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '4px', display: 'block' }}>QUICK TEST PROMPTS:</span>
+                <div className="test-prompt-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                  {TEST_PROMPTS.map((tp, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`test-prompt-btn ${selectedTestPrompt === idx ? 'active' : ''}`}
+                      onClick={() => handleTestPromptSelect(idx)}
+                      style={{ fontSize: '0.65rem', padding: '6px 4px' }}
+                    >
+                      {tp.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Recommendations */}
-              {!selectedTestPrompt && recommendations.length > 0 && (
-                <div className="recommendations-container" style={{ marginTop: '8px' }}>
+              {recommendations.length > 0 && (
+                <div className="recommendations-container" style={{ marginTop: '12px', borderTop: '1px solid #111', paddingTop: '8px' }}>
                   <span className="mono" style={{ fontSize: '0.6rem', color: '#555', marginBottom: '4px', display: 'block' }}>RECOMMENDED NEXT SCENES:</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {recommendations.map((rec, i) => (
@@ -383,7 +392,10 @@ function App() {
                         key={i}
                         type="button"
                         className="recommendation-chip"
-                        onClick={() => setCustomContent(rec)}
+                        onClick={() => {
+                          setCustomContent(rec);
+                          setSelectedTestPrompt(-1);
+                        }}
                         style={{
                           background: '#111',
                           border: '1px solid #222',
@@ -412,8 +424,12 @@ function App() {
               <label>Characters</label>
               <input 
                 name="characters" 
+                value={customCharacters}
+                onChange={(e) => {
+                  setCustomCharacters(e.target.value);
+                  setSelectedTestPrompt(-1);
+                }}
                 placeholder="A young reporter with a quiff, his white terrier..." 
-                disabled={selectedTestPrompt >= 0}
               />
             </div>
 
@@ -421,15 +437,26 @@ function App() {
               <label>Setting / Location</label>
               <input 
                 name="setting" 
+                value={customSetting}
+                onChange={(e) => {
+                  setCustomSetting(e.target.value);
+                  setSelectedTestPrompt(-1);
+                }}
                 placeholder="A sun-drenched North African souk..." 
-                disabled={selectedTestPrompt >= 0}
               />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div className="form-group">
                 <label>Camera Angle</label>
-                <select name="cameraAngle" disabled={selectedTestPrompt >= 0}>
+                <select 
+                  name="cameraAngle" 
+                  value={customCameraAngle}
+                  onChange={(e) => {
+                    setCustomCameraAngle(e.target.value);
+                    setSelectedTestPrompt(-1);
+                  }}
+                >
                   <option value="medium shot">Medium Shot</option>
                   <option value="wide establishing shot">Wide / Establishing</option>
                   <option value="close-up">Close-up</option>
@@ -453,9 +480,13 @@ function App() {
                   {speechOverlay && (
                     <input 
                       name="dialogue" 
+                      value={customDialogue}
+                      onChange={(e) => {
+                        setCustomDialogue(e.target.value);
+                        setSelectedTestPrompt(-1);
+                      }}
                       placeholder="Dialogue..." 
                       style={{ flex: 1, height: '47.5px', padding: '0 8px', fontSize: '0.8rem' }}
-                      disabled={selectedTestPrompt >= 0}
                     />
                   )}
                 </div>
@@ -464,7 +495,15 @@ function App() {
 
             <div className="form-group">
               <label>Extra Parameters</label>
-              <input name="params" placeholder="Additional style details..." disabled={selectedTestPrompt >= 0} />
+              <input 
+                name="params" 
+                value={customParams}
+                onChange={(e) => {
+                  setCustomParams(e.target.value);
+                  setSelectedTestPrompt(-1);
+                }}
+                placeholder="Additional style details..." 
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '12px', marginTop: 'auto', paddingTop: '12px' }}>
