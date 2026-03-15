@@ -12,6 +12,7 @@ export interface PanelConfig {
   dialogue?: string;
   dimensions?: string;
   params?: string;
+  referenceImages?: string[];
 }
 
 export const TINTIN_SYSTEM_PROMPT = `You are an expert comic illustrator that generates images EXCLUSIVELY in the "Ligne Claire" style of Hergé's Tintin comics. Every image you create must strictly follow these rules:
@@ -72,6 +73,9 @@ export function buildPanelPrompt(config: PanelConfig): string {
   if (config.dialogue) parts.push(`DIALOGUE (in speech bubbles): "${config.dialogue}"`);
   if (config.dimensions) parts.push(`FRAMING / ASPECT RATIO: ${config.dimensions}`);
   if (config.params) parts.push(`ADDITIONAL DETAILS: ${config.params}`);
+  if (config.referenceImages && config.referenceImages.length > 0) {
+    parts.push(`VISUAL REFERENCES: ${config.referenceImages.length} character images are attached. Use these EXACT visual references for the characters in this scene.`);
+  }
 
   parts.push('');
   parts.push('CRITICAL STYLE REQUIREMENTS:');

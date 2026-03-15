@@ -10,6 +10,7 @@ const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 export interface ImageConfig {
   aspectRatio?: string;
   imageSize?: string;
+  referenceImages?: string[]; // Array of base64 strings
 }
 
 export interface GenerationResponse {
@@ -27,11 +28,30 @@ export async function generateImage(
 ): Promise<GenerationResponse> {
   const url = `${BASE_URL}/${MODEL}:generateContent?key=${API_KEY}`;
 
+  const contentParts: any[] = [];
+  
+  // Add reference images first if they exist
+  if (imageConfig?.referenceImages && imageConfig.referenceImages.length > 0) {
+    imageConfig.referenceImages.forEach((base64) => {
+      // Remove base64 prefix if exists
+      const data = base64.split(',')[1] || base64;
+      contentParts.push({
+        inlineData: {
+          mimeType: 'image/png', // Assume png or detect from header if needed
+          data: data
+        }
+      });
+    });
+  }
+
+  // Add the text prompt last
+  contentParts.push({ text: prompt });
+
   const requestBody: any = {
     contents: [
       {
         role: 'user',
-        parts: [{ text: prompt }],
+        parts: contentParts,
       },
     ],
     generationConfig: {

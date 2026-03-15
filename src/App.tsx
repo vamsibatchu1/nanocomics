@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import './App.css';
-import { MousePointer2 } from 'lucide-react';
+import { MousePointer2, Upload, X, ShieldAlert } from 'lucide-react';
 import { generateComicPanel, ImageConfig, getSceneRecommendations } from './services/gemini';
 import { TINTIN_SYSTEM_PROMPT, buildPanelPrompt, TEST_PROMPTS, PanelConfig } from './prompts/tintin';
 import logo from './assets/nanocomics.jpeg';
@@ -50,6 +50,7 @@ function App() {
   const [customCameraAngle, setCustomCameraAngle] = useState('medium shot');
   const [customDialogue, setCustomDialogue] = useState('');
   const [customParams, setCustomParams] = useState('');
+  const [referenceImages, setReferenceImages] = useState<string[]>([]);
 
   const getClosestAspectRatio = (width: number, height: number): string => {
     const ratio = width / height;
@@ -110,6 +111,24 @@ function App() {
     }
   };
 
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setReferenceImages(prev => [...prev, base64String]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeReferenceImage = (index: number) => {
+    setReferenceImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handlePanelClick = (rowId: string, panelId: string, e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const aspectRatio = getClosestAspectRatio(rect.width, rect.height);
@@ -126,6 +145,7 @@ function App() {
     setCustomCameraAngle(existingData?.cameraAngle || 'medium shot');
     setCustomDialogue(existingData?.dialogue || '');
     setCustomParams(existingData?.params || '');
+    setReferenceImages(existingData?.referenceImages || []);
     setSpeechOverlay(!!existingData?.dialogue);
     
     setSelectedPanel({ 
@@ -169,7 +189,8 @@ function App() {
       dialogue: speechOverlay ? customDialogue : '',
       cameraAngle: customCameraAngle,
       params: customParams,
-      dimensions: currentAspectRatio
+      dimensions: currentAspectRatio,
+      referenceImages: referenceImages
     };
 
     const panelId = selectedPanel.panelId;
@@ -184,7 +205,8 @@ function App() {
       
       const imageConfig: ImageConfig = {
         aspectRatio: currentAspectRatio,
-        imageSize: '1024'
+        imageSize: '1024',
+        referenceImages: referenceImages
       };
 
       const result = await generateComicPanel(prompt, TINTIN_SYSTEM_PROMPT, imageConfig);
@@ -469,16 +491,42 @@ function App() {
             </div>
 
             <div className="form-group">
-              <label>Setting / Location</label>
-              <input 
-                name="setting" 
-                value={customSetting}
-                onChange={(e) => {
-                  setCustomSetting(e.target.value);
-                  setSelectedTestPrompt(-1);
-                }}
-                placeholder="A sun-drenched North African souk..." 
-              />
+              <label>Character Reference Images</label>
+              <div className="reference-upload-container">
+                <input 
+                  type="file" 
+                  id="ref-upload" 
+                  multiple 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  style={{ display: 'none' }}
+                />
+                <button 
+                  type="button" 
+                  className="upload-button"
+                  onClick={() => document.getElementById('ref-upload')?.click()}
+                >
+                  <Upload size={16} />
+                  Upload Character Reference
+                </button>
+                
+                {referenceImages.length > 0 && (
+                  <div className="reference-grid">
+                    {referenceImages.map((img, idx) => (
+                      <div key={idx} className="reference-item">
+                        <img src={img} alt="Ref" />
+                        <button 
+                          type="button" 
+                          className="reference-remove"
+                          onClick={() => removeReferenceImage(idx)}
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
